@@ -3,6 +3,9 @@ import os
 import json
 import subprocess
 from pathlib import Path
+from fastapi import FastAPI, HTTPException
+from utils import extract_email_sender
+
 
 app = FastAPI()
 
@@ -62,3 +65,14 @@ def secure_path(file_path):
     if not full_path.resolve().is_relative_to(DATA_DIR):
         raise ValueError("Access to files outside /data/ is restricted.")
     return full_path
+
+app = FastAPI()
+
+@app.post("/run")
+def run_task(task: str):
+    if "email sender" in task.lower():
+        try:
+            result = extract_email_sender("/data/email.txt", "/data/email-sender.txt")
+            return {"message": result}
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=str(e))
